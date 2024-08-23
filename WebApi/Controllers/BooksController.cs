@@ -1,7 +1,7 @@
 ﻿using Entities.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Repositories.EFCore;
+using Repositories.Contracts;
 
 namespace WebApi.Controllers
 {
@@ -9,36 +9,34 @@ namespace WebApi.Controllers
     [ApiController]
     public class BooksController : ControllerBase
     {
-        private readonly RepositoryContext _context;
+        private readonly IRepositoryManager _manager;
 
-        public BooksController(RepositoryContext context)
+        public BooksController(IRepositoryManager manager)
         {
-            _context = context;
+            _manager = manager;
         }
-
 
         [HttpGet]
         public IActionResult GetAllBooks()
         {
             try
             {
-                var books = _context.Books.ToList();
+                var books = _manager.Book.GetAllBooks(trackChanges: false);
                 return Ok(books);
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
-           
+
         }
 
         [HttpGet("{id:int}")]
         public IActionResult GetBookById([FromRoute(Name = "id")] int id)
         {
-            var book = _context
-                .Books
-                .Where(a => a.Id.Equals(id))
-                .FirstOrDefault();
+            var book = _manager
+                .Book
+                .GetOneBookById(id, trackChanges: false);
 
             if (book is null)
             {
@@ -49,7 +47,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateBook([FromBody] Book book)
+        public IActionResult CreateOneBook([FromBody] Book book)
         {
             try
             {
@@ -58,8 +56,8 @@ namespace WebApi.Controllers
                     return BadRequest(); // 400
                 }
 
-                _context.Books.Add(book);
-                _context.SaveChanges();
+                _manager.Book.CreateOneBook(book);
+                _manager.Save();
                 return StatusCode(201, book);
             }
             catch (Exception ex)
@@ -72,12 +70,11 @@ namespace WebApi.Controllers
         public IActionResult UpdateBook([FromRoute(Name = "id")] int id, [FromBody] Book book)
         {
 
-            try {
+            try
+            {
 
-                var entity = _context
-                .Books
-                .Where(a => a.Id.Equals(id))
-                .FirstOrDefault();
+                var entity = _manager.Book
+                    .GetOneBookById(id, trackChanges: true);
 
                 if (entity is null)
                     return NotFound(); // 404
@@ -88,7 +85,8 @@ namespace WebApi.Controllers
                 entity.Title = book.Title;
                 entity.Price = book.Price;
 
-                _context.SaveChanges();
+                _manager.Book.UpdateOneBook(entity);
+                _manager.Save();
                 return Ok(book);
 
             }
@@ -101,10 +99,9 @@ namespace WebApi.Controllers
         [HttpDelete("{id:int}")]
         public IActionResult DeleteBookById([FromRoute(Name = "id")] int id)
         {
-            var entity = _context
-                .Books
-                .Where(a => a.Id.Equals(id))
-                .SingleOrDefault();
+            var entity = _manager
+                .Book
+                .GetOneBookById(id, trackChanges: false);
 
             if (entity is null)
             {
@@ -115,24 +112,24 @@ namespace WebApi.Controllers
                 });
             }
 
-            _context.Books.Remove(entity);
-            _context.SaveChanges();
+            _manager.Book.DeleteOneBook(entity);
+            _manager.Save();
             return NoContent();
         }
 
         [HttpPatch("{id:int}")]
         public IActionResult PartiallyUpdateBook([FromRoute(Name = "id")] int id, [FromBody] JsonPatchDocument<Book> bookPatch)
         {
-            var entity = _context
-                .Books
-                .Where(a => a.Id.Equals(id))
-                .SingleOrDefault();
+            var entity = _manager
+                .Book
+                .GetOneBookById(id, trackChanges: true);
 
             if (entity is null)
                 return NotFound(); // 404
 
             bookPatch.ApplyTo(entity);
-            _context.SaveChanges();
+            _manager.Book.UpdateOneBook(entity);
+            _manager.Save();
 
             return NoContent();
         }
