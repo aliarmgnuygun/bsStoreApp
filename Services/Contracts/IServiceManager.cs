@@ -2,6 +2,6 @@
 {
     public interface IServiceManager
     {
-        IBookService Book { get; }
+        IBookService BookService { get; }
     }
 }
