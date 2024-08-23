@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using Repositories.EFCore;
+using WebApi.Extensions;
 
 namespace WebApi
 {
@@ -14,8 +13,7 @@ namespace WebApi
             builder.Services.AddControllers().AddNewtonsoftJson();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddDbContext<RepositoryContext>(options => 
-                options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
+            builder.Services.ConfigureSqlContext(builder.Configuration);
 
             var app = builder.Build();
 
