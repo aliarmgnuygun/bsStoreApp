@@ -10,7 +10,9 @@ namespace WebApi
 
             // Add services to the container.
 
-            builder.Services.AddControllers().AddNewtonsoftJson();
+            builder.Services.AddControllers()
+                .AddApplicationPart(typeof(Presentation.AssemblyReference).Assembly)
+                .AddNewtonsoftJson();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.ConfigureSqlContext(builder.Configuration);
