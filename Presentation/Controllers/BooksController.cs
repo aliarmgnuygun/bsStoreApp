@@ -19,21 +19,15 @@ namespace Presentation.Controllers
         [HttpGet]
         public IActionResult GetAllBooks()
         {
-            try
-            {
-                var books = _manager.BookService.GetAllBooks(trackChanges: false);
-                return Ok(books);
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-
+            var books = _manager.BookService.GetAllBooks(trackChanges: false);
+            return Ok(books);
         }
 
         [HttpGet("{id:int}")]
         public IActionResult GetBookById([FromRoute(Name = "id")] int id)
         {
+            throw new Exception("An error occurred while processing your request. Please try again later.");
+
             var book = _manager
                 .BookService
                 .GetBookById(id, trackChanges: false);
@@ -49,43 +43,27 @@ namespace Presentation.Controllers
         [HttpPost]
         public IActionResult CreateOneBook([FromBody] Book book)
         {
-            try
+            if (book is null)
             {
-                if (book is null)
-                {
-                    return BadRequest(); // 400
-                }
-
-                _manager.BookService.CreateOneBook(book);
-
-                return StatusCode(201, book);
+                return BadRequest(); // 400
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+
+            _manager.BookService.CreateOneBook(book);
+
+            return StatusCode(201, book);
         }
 
         [HttpPut("{id:int}")]
         public IActionResult UpdateBook([FromRoute(Name = "id")] int id, [FromBody] Book book)
         {
-
-            try
+            if (book is null)
             {
-                if (book is null)
-                {
-                    return BadRequest(); // 400
-                }
-
-                _manager.BookService.UpdateOneBook(id, book, trackChanges: true);
-
-                return NoContent();
-
+                return BadRequest(); // 400
             }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
+
+            _manager.BookService.UpdateOneBook(id, book, trackChanges: true);
+
+            return NoContent();
         }
 
         [HttpDelete("{id:int}")]
